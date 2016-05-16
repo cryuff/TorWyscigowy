@@ -9,13 +9,18 @@
 #define MAX_Y 20
 
 int result;
-int place = 1;
+int notcompleted[50];
+int nc_place=0;
+int completed[50];
+int c_place=0;
 int ** cars;
 int laps = 0;
 char map[MAX_X][MAX_Y];
 
-pthread_mutex_t pitstop_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+pthread_mutex_t pitstop_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t turn_left_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t turn_left_second_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct thread_data_t
 {
@@ -33,28 +38,10 @@ pthread_t paint_thread;
 thread_data_t * threadsParameters;
 
 void *car_thread_function(void *arg);
-
 void initialize();
+void clear_them_all();
+void results();
 
-void initialize ()
-{
-	for(int i=0; i<nrTeams*2; i++)
-	{
-        if((result = pthread_create(&threads[i], NULL, car_thread_function, &threadsParameters[i])))
-		{
-            printw("Thread %d init error \n", i) ;
-        }
-    }   
-}
-
-void clear_them_all()
-{
-	 for (int i=0; i<nrTeams*2; i++) 
-	 {
-        pthread_join(threads[i], NULL);
-	 }   
-	 pthread_mutex_destroy(&pitstop_mutex);
-}
 void *car_thread_function(void *arg) 
 {
 
@@ -81,10 +68,23 @@ void *car_thread_function(void *arg)
 			laps_for_car--;
 			new_speed = speed_p + 1000/fuel_p;
 		}
+		if (x == 0 && y == MAX_Y)
+		{
+			pthread_mutex_lock(&turn_left_mutex);
+			usleep(100);
+			pthread_mutex_unlock(&turn_left_mutex);
+		}
+		if (x == 0 && y == 0)
+		{
+			pthread_mutex_lock(&turn_left_second_mutex);
+			usleep(50);
+			pthread_mutex_unlock(&turn_left_second_mutex);
+		}
 		if (fuel_p < 20 && fuel_p > 0)
 			{		
 				if (pthread_mutex_trylock(&pitstop_mutex)==0) 
 				{
+					printf("%s %d %s","W pitstopie stoi:",car_id,"\n");
 					usleep(rand() % 500 + 1000 );
 					fuel_p = 100;
 					pthread_mutex_unlock(&pitstop_mutex);
@@ -92,18 +92,53 @@ void *car_thread_function(void *arg)
 			}
 		if (fuel_p < 0)
 		{
-			printf("%s %d %s","Koniec wyscigu dla:",car_id,"\n");
+			notcompleted[nc_place]=car_id;
+			nc_place++;
 			break;
 		}
 		if (laps_for_car == 0)
 		{
-			printf("%s %d %s %d %s","Miejsce",place,"zawodnik nr.",car_id,"\n");
-			place++;
-			}
+			completed[c_place]=car_id;
+			c_place++;
+			break;
+		}
 	}
 	pthread_exit(NULL);
 }
 
+void initialize ()
+{
+	for(int i=0; i<nrTeams*2; i++)
+	{
+        if((result = pthread_create(&threads[i], NULL, car_thread_function, &threadsParameters[i])))
+		{
+            printw("Thread %d init error \n", i) ;
+        }
+    }   
+}
+
+void clear_them_all()
+{
+	 for (int i=0; i<nrTeams*2; i++) 
+	 {
+        pthread_join(threads[i], NULL);
+	 }   
+	 pthread_mutex_destroy(&pitstop_mutex);
+	 pthread_mutex_destroy(&turn_left_mutex);
+	 pthread_mutex_destroy(&turn_left_second_mutex);
+}
+
+void results()
+{
+	for (int i=0; i<c_place;i++)
+	{
+		printf("%s %d %s %d %s","Miejsce",i+1,"zajął pojazd nr.",completed[i],"\n");
+	}
+	for (int i=0; i<nc_place;i++)
+	{
+		printf("%s %d %s","Do mety nie dojechał pojazd ",notcompleted[i],"\n");
+	}
+}
 int main(int argc, char **argv){
     
     if(argc < 2) {
@@ -130,6 +165,7 @@ int main(int argc, char **argv){
     initscr();
 	initialize();
 	clear_them_all();
+	results();
     return 0;
 
 }
