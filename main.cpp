@@ -34,7 +34,6 @@ pthread_mutex_t pitstop_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t turn_left_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t turn_left_second_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t rest_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t paint_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_t * threads;
 pthread_t pitstop_thread;
 pthread_t paint_thread;
@@ -48,7 +47,7 @@ void clear_part();
 void results();
 void print_lap();
 
-/*void *pitstop_thread_function(void *arg)
+void *pitstop_thread_function(void *arg)
 {
 	int power = 100;
 	while(!finish)
@@ -67,16 +66,13 @@ void print_lap();
 			if (power>=0)
 			{
 				power = power - 10;
-				printf("%s %d %s","Siła:",power,"\n");
 				sila = sila+power;
-				usleep(10000);
 			}
 		}
 }
-
 	pthread_exit(NULL);
 } 
-*/
+
 void *car_thread_function(void *arg) 
 {
 
@@ -124,7 +120,7 @@ void *car_thread_function(void *arg)
 					pitstop = true;
 					cars[car_id][0]=MAX_X + 2;
 					cars[car_id][1]=0;
-					usleep(rand() % 500 + 1000 );
+					usleep(rand() % 1000 + 2000 - sila );
 					fuel_p = 100;
 					sila = 0;
 					pitstop = false;
@@ -167,14 +163,14 @@ void print_lap()
     strcpy(map[0], "-------------------  [ ]");
     for(int i=1; i<20;i++)
 	{
-        strcpy(map[i], "|                 |");
+        strcpy(map[i], "|                   |");
     }
     strcpy(map[MAX_Y], "-------------------");
 	for(int i=0; i<nrTeams*2; i++)
 	{
         if(cars[i][0] != -1 && cars[i][1] != -1) 
 		{
-            map[cars[i][1]][cars[i][0]] = (char)(49 + i);
+            map[cars[i][1]][cars[i][0]] = (char)(48 + i);
         }
     }
     for(int i=0; i<MAX_Y+1 ; i++)
@@ -197,10 +193,10 @@ void initialize ()
     }  
 	
 	result = pthread_create(&paint_thread,NULL,paint_thread_function,NULL);
-	/*for(int i=0; i<10; i++)
+	for(int i=0; i<10; i++)
 	{
         result = pthread_create(&pitstop_thread,NULL,pitstop_thread_function,NULL);
-    } */
+    } 
 
 }
 
@@ -210,7 +206,6 @@ void clear_them_all()
 	 pthread_mutex_destroy(&turn_left_mutex);
 	 pthread_mutex_destroy(&turn_left_second_mutex);
 	 pthread_mutex_destroy(&rest_mutex);
-	 pthread_mutex_destroy(&paint_mutex);
 	 pthread_join(pitstop_thread, NULL); 
 	 pthread_join(paint_thread, NULL);
 }
@@ -266,5 +261,3 @@ int main(int argc, char **argv)
 	results();
     return 0;
 }
-
-
