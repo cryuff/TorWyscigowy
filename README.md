@@ -8,5 +8,5 @@ Poniżej określonej ilości paliwa pojazd próbuje zjechać do pitstopu.
 Sekcjami krytycznymi są pitstopy oraz dwa zakręty na torze, przez które może przejechać tylko jeden pojazd.
 Wątki - rysowanie toru wraz z pozycjami pojazdów, zespół w pitstopie, pojazdy.
 Wygrywa pierwszy pojazd, który przejedzie określoną ilość okrążeń.
-Pojazdy mogą nie dotrzeć do mety jeśli skończy im się paliwo, a nie będą mogły zjechać do pitstopu, gdyż drugi pojazd
-z zespołu będzie go zajmował.
+Pojazdy mogą nie dotrzeć do mety jeśli skończy im się paliwo, a nie będą mogły zjechać do pitstopu, gdyż drugi pojazd będzie go zajmował.
+Program przetestowany do 50 pojazdów (25 zespołów).

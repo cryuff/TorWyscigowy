@@ -16,7 +16,7 @@ int c_place=0;
 int ** cars;
 int laps = 0;
 int nrTeams;
-char map[MAX_Y + 1][MAX_X + 1];
+char map[MAX_Y + 1][MAX_X + 6];
 bool finish = false;
 bool repaint = true;
 int pitstoperzy[10];
@@ -122,6 +122,8 @@ void *car_thread_function(void *arg)
 				if (pthread_mutex_trylock(&pitstop_mutex)==0) 
 				{
 					pitstop = true;
+					cars[car_id][0]=MAX_X + 2;
+					cars[car_id][1]=0;
 					usleep(rand() % 500 + 1000 );
 					fuel_p = 100;
 					sila = 0;
@@ -154,7 +156,7 @@ void *paint_thread_function(void *arg)
 	while(!finish)
 	{
 		print_lap();
-		usleep(1000000);
+		usleep(10000);
 	}
 	pthread_exit(NULL);
 }
@@ -162,7 +164,7 @@ void *paint_thread_function(void *arg)
 void print_lap()
 {
     clear();
-    strcpy(map[0], "-------------------");
+    strcpy(map[0], "-------------------  [ ]");
     for(int i=1; i<20;i++)
 	{
         strcpy(map[i], "|                 |");
