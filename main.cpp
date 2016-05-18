@@ -34,6 +34,7 @@ pthread_mutex_t pitstop_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t turn_left_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t turn_left_second_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t rest_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t	cond	= PTHREAD_COND_INITIALIZER;
 pthread_t * threads;
 pthread_t pitstop_thread;
 pthread_t paint_thread;
@@ -56,17 +57,31 @@ void *pitstop_thread_function(void *arg)
 		{
 			if(power<30 && power>=0)
 			{
-				if (pthread_mutex_trylock(&rest_mutex)==0) 
+				pthread_mutex_lock(&rest_mutex);
+				do {
+					if (!pitstop) 
+					{
+						usleep(100);
+						power = 100;
+						break;
+					}
+					else
+						pthread_cond_wait(&cond, &rest_mutex);
+				   } while (1);
+				pthread_mutex_unlock(&rest_mutex);
+				/*if (pthread_mutex_trylock(&rest_mutex)==0) 
 				{	
 					usleep(10);
 					power = 100;
 					pthread_mutex_unlock(&rest_mutex);
-				}
+				}*/
+			
 			}
 			if (power>=0)
 			{
 				power = power - 10;
 				sila = sila+power;
+				break;
 			}
 		}
 }
@@ -124,6 +139,7 @@ void *car_thread_function(void *arg)
 					fuel_p = 100;
 					sila = 0;
 					pitstop = false;
+					pthread_cond_signal(&cond);
 					pthread_mutex_unlock(&pitstop_mutex);
 				}
 			}
@@ -186,7 +202,7 @@ void initialize ()
 {
 	for(int i=0; i<nrTeams*2; i++)
 	{
-        if((result = pthread_create(&threads[i], NULL, car_thread_function, &threadsParameters[i])))
+        if((result = pthread_create(&threads[i], NULL, car_thread_function, 		&threadsParameters[i])))
 		{
             printw("Thread %d init error \n", i) ;
         }
@@ -197,6 +213,7 @@ void initialize ()
 	{
         result = pthread_create(&pitstop_thread,NULL,pitstop_thread_function,NULL);
     } 
+	pthread_cond_init(&cond, NULL);
 
 }
 
@@ -208,6 +225,7 @@ void clear_them_all()
 	 pthread_mutex_destroy(&rest_mutex);
 	 pthread_join(pitstop_thread, NULL); 
 	 pthread_join(paint_thread, NULL);
+	 pthread_cond_destroy(&cond);	
 }
 
 void clear_part()
@@ -223,11 +241,11 @@ void results()
 {
 	for (int i=0; i<c_place;i++)
 	{
-		printf("%s %d %s %d %s","Miejsce",i+1,"zajął pojazd nr.",completed[i],"\n");
+		printf("%s %d %s %d %s","Miejsce",i+1,"zajął pojazd nr.",completed[i],"\n\r");
 	}
 	for (int i=0; i<nc_place;i++)
 	{
-		printf("%s %d %s","Do mety nie dojechał pojazd ",notcompleted[i],"\n");
+		printf("%s %d %s","Do mety nie dojechał pojazd ",notcompleted[i],"\n\r");
 	}
 }
 int main(int argc, char **argv)
