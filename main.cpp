@@ -168,7 +168,7 @@ void *paint_thread_function(void *arg)
 	while(!finish)
 	{
 		print_lap();
-		usleep(10000);
+		usleep(100000);
 	}
 	pthread_exit(NULL);
 }
@@ -191,7 +191,7 @@ void print_lap()
     }
     for(int i=0; i<MAX_Y+1 ; i++)
 	{
-        printw("%s\n",map[i]);
+        printw("%s\n\r",map[i]);
     }
     refresh();
 
