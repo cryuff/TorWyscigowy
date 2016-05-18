@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_X 20
-#define MAX_Y 20
+#define MAX_X 50
+#define MAX_Y 50
 
 int result;
 int notcompleted[50];
@@ -176,17 +176,17 @@ void *paint_thread_function(void *arg)
 void print_lap()
 {
     clear();
-    strcpy(map[0], "-------------------  [ ]");
-    for(int i=1; i<20;i++)
+    strcpy(map[0], "-------------------------------------------------  [ ]");
+    for(int i=1; i<MAX_Y;i++)
 	{
-        strcpy(map[i], "|                   |");
+        strcpy(map[i], "|                                                 |");
     }
-    strcpy(map[MAX_Y], "-------------------");
+    strcpy(map[MAX_Y], "-------------------------------------------------");
 	for(int i=0; i<nrTeams*2; i++)
 	{
         if(cars[i][0] != -1 && cars[i][1] != -1) 
-		{
-            map[cars[i][1]][cars[i][0]] = (char)(48 + i);
+	{
+            map[cars[i][1]][cars[i][0]] = (char)(48 + (i%10));
         }
     }
     for(int i=0; i<MAX_Y+1 ; i++)
